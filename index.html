@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: rgba(28, 28, 30, 0.75);
+            --navbar-bg: rgba(28, 28, 30, 0.7);
+            --text-primary: #EAEAEA;
+            --text-secondary: #A0A0A0;
+            --accent-color: #0A84FF;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --border-radius: 16px;
+        }
+        html.light-mode {
+            --bg-color: #F4F6F8;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --text-primary: #121212;
+            --text-secondary: #555;
+            --accent-color: #007AFF;
+            --shadow-color: rgba(0, 0, 0, 0.07);
+            --border-color: rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Keyframes (ALL RESTORED + NEW) --- */
+        @keyframes animated-gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse-border { 0%, 100% { box-shadow: 0 0 8px 0px rgba(255,255,255, 0.1), 0 4px 16px var(--shadow-color); } 50% { box-shadow: 0 0 16px 4px rgba(255,255,255, 0.3), 0 4px 16px var(--shadow-color); } }
+        @keyframes pulse-bg { 0% { background-color: rgba(255,255,255,0.05); } 50% { background-color: rgba(255,255,255,0.1); } 100% { background-color: rgba(255,255,255,0.05); } }
+        
+        /* --- NEW: Scary Animation Keyframes --- */
+        @keyframes floatGhost { 0%, 100% { transform: translateY(0) translateX(0) rotate(-2deg); } 50% { transform: translateY(-30px) translateX(20px) rotate(2deg); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.2); opacity: 0.6; } 50% { box-shadow: 0 0 30px 10px rgba(255, 255, 255, 0.4); opacity: 0.9; } }
+
+        /* --- Base Styles --- */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: var(--bg-color); }
+        body { font-family: 'Inter', sans-serif; color: var(--text-primary); }
+        
+        /* --- Backgrounds --- */
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: animated-gradient 25s ease infinite; z-index: -1; opacity: 0.5; }
+        html.light-mode body::before { opacity: 1; }
+
+        /* --- NEW: Scary Animation Styles --- */
+        #scary-effects-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10001; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 1s ease, visibility 1s ease; }
+        #scary-effects-container.active { opacity: 1; visibility: visible; }
+        .aesthetic-ghost { position: absolute; bottom: 60px; left: 20px; width: 80px; height: 120px; background: rgba(255, 255, 255, 0.5); border-radius: 50% 50% 20px 20px; animation: floatGhost 8s ease-in-out infinite, pulseGlow 4s ease-in-out infinite; filter: blur(5px); }
+        .aesthetic-ghost::before, .aesthetic-ghost::after { content: ''; position: absolute; top: 50%; width: 10px; height: 10px; background: black; border-radius: 50%; }
+        .aesthetic-ghost::before { left: 25px; }
+        .aesthetic-ghost::after { right: 25px; }
+        .creepy-eye { position: absolute; top: 100px; right: 40px; width: 30px; height: 30px; background: white; border-radius: 50%; animation: pulseGlow 3s ease-in-out infinite alternate; }
+        .creepy-eye::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: red; border-radius: 50%; }
+
+        /* --- Registration Form Overlay --- */
+        #registration-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 10002; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.5s ease; }
+        .register-container { background: var(--card-bg); padding: 30px 35px; border-radius: var(--border-radius); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37); width: 90%; max-width: 380px; text-align: center; border: 1px solid var(--border-color); animation: fadeIn 0.5s ease; }
+        .register-container h2 { margin: 0 0 25px 0; font-weight: 700; font-size: 1.8rem; color: var(--text-primary); }
+        .register-container p { margin: 0 0 30px 0; color: var(--text-secondary); line-height: 1.5; }
+        .input-group input { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px; background-color: rgba(0,0,0,0.2); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 1rem; box-sizing: border-box; transition: box-shadow 0.3s; }
+        .input-group input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent-color); }
+        .register-btn { width: 100%; padding: 14px; margin-top: 20px; border: none; border-radius: 12px; background-color: var(--accent-color); color: white; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease; }
+        
+        /* --- Main App Wrapper --- */
+        #app-wrapper { opacity: 1; transition: opacity 0.5s ease; height: 100%; overflow-y: auto; overflow-x: hidden; padding: 24px 20px 120px 20px; box-sizing: border-box; position: relative; z-index: 1; }
+        main { max-width: 500px; margin: 0 auto; }
+        .hidden { display: none !important; opacity: 0 !important; visibility: hidden !important; }
+        .content-section { display: none; animation: fadeIn 0.4s ease; }
+        .content-section.active { display: block; }
+        
+        /* --- ALL ORIGINAL STYLES RESTORED --- */
+        .weather-card, .card, .update-notes-card { background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 4px 16px var(--shadow-color); transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease; animation: pulse-border 4s ease-in-out infinite; }
+        .weather-card { padding: 20px; }
+        .weather-header h1 { margin: 0; font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .update-notes-card { margin-top: 20px; padding: 20px; }
+        .card { border-radius: var(--border-radius); overflow: hidden; }
+        .card.hidden { display: none !important; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; color: white; background-color: var(--accent-color-theme, var(--text-secondary)); }
+        .card-header h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.2rem; }
+        .card-content { padding: 16px 20px; }
+        .skeleton { animation: pulse-bg 1.5s infinite; border-radius: var(--border-radius); }
+        .skeleton.weather-card, .skeleton.card { height: 200px; width: 100%; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--navbar-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-secondary); transition: all 0.3s ease; font-size: 0.7rem; font-weight: 500; padding: 4px 8px; }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-item.active { color: var(--accent-color); }
+        .theme-toggle, .refresh-fab, .music-toggle { position: fixed; right: 20px; width: 45px; height: 45px; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 8px var(--shadow-color); cursor: pointer; transition: all 0.3s ease; z-index: 999; }
+        .theme-toggle { top: 20px; }
+        .refresh-fab { bottom: 85px; background: var(--accent-color); color: white; border: none; font-size: 1.2rem; }
+        .music-toggle { bottom: 145px; }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); display: flex; align-items: center; gap: 10px; padding: 10px 20px; background-color: rgba(40,40,40,0.8); backdrop-filter: blur(10px); color: white; border-radius: 50px; font-size: 0.9rem; z-index: 9999; transition: transform 0.4s ease-in-out; }
+        .notification.show { transform: translate(-50%, 0); }
+        .app-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); padding: 40px 20px 0 20px; }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    <audio id="background-music" loop>
+        <source src="Multo.mp3" type="audio/mpeg">
+    </audio>
+    <div id="scary-effects-container">
+        <div class="aesthetic-ghost"></div>
+        <div class="creepy-eye"></div>
+    </div>
+
+    <div id="registration-overlay">
+        <div class="register-container">
+            <h2>Welcome to the Dashboard</h2>
+            <p>Please enter your name to personalize your experience and unlock the app.</p>
+            <form id="registration-form">
+                <div class="input-group">
+                    <input type="text" id="realNameInput" placeholder="Enter your real name..." required>
+                </div>
+                <button type="submit" class="register-btn">Unlock Dashboard</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="app-wrapper" class="hidden">
+        <div id="notification" class="notification"><i id="notificationIcon" class="fa-solid fa-check-circle"></i><span id="notificationMessage"></span></div>
+        <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme"></button>
+        <button class="refresh-fab" id="refreshBtn" aria-label="Refresh Data"><i class="fa-solid fa-rotate"></i></button>
+        <button id="music-toggle-btn" class="music-toggle" aria-label="Toggle Music"><i class="fa-solid fa-volume-xmark"></i></button>
+
+        <main>
+            <h2 id="welcome-message" style="font-weight: 700; margin-bottom: 20px; animation: fadeIn 0.5s;"></h2>
+            <div id="weatherSection" class="content-section active">
+                <div class="skeleton weather-card"></div>
+            </div>
+            <div id="stockSection" class="content-section">
+                <div class="stock-grid" id="stockContainer">
+                    <div class="skeleton card"></div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="app-footer">
+            <p>&copy; 2025 Sunnel John Rebano | v6.6</p>
+        </footer>
+        
+        <nav class="bottom-nav" id="navbar">
+            <div class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
+            <div class="nav-item" data-target="gearStock"><i class="fa-solid fa-gear"></i><span>Gear</span></div>
+            <div class="nav-item" data-target="seedsStock"><i class="fa-solid fa-seedling"></i><span>Seeds</span></div>
+            <div class="nav-item" data-target="eggStock"><i class="fa-solid fa-egg"></i><span>Egg</span></div>
+            <div class="nav-item" data-target="honeyStock"><i class="fa-solid fa-jar"></i><span>Honey</span></div>
+            <div class="nav-item" data-target="cosmeticsStock"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Cosmetics</span></div>
+        </nav>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element & State Initialization ---
+            const registrationOverlay = document.getElementById('registration-overlay');
+            const registrationForm = document.getElementById('registration-form');
+            const realNameInput = document.getElementById('realNameInput');
+            const appWrapper = document.getElementById('app-wrapper');
+            const welcomeMessage = document.getElementById('welcome-message');
+            const music = document.getElementById('background-music');
+            const musicToggleBtn = document.getElementById('music-toggle-btn');
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const navbar = document.getElementById('navbar');
+            const stockContainer = document.getElementById('stockContainer');
+            const weatherSection = document.getElementById('weatherSection');
+            const stockSection = document.getElementById('stockSection');
+            const scaryEffectsContainer = document.getElementById('scary-effects-container');
+            
+            let isMusicPlaying = false;
+            let currentTheme = localStorage.getItem('theme') || 'dark';
+            let currentFilter = 'home';
+            let globalTimerInterval = null;
+            const PH_OFFSET = 8 * 60 * 60 * 1000;
+
+            // --- Core App Logic ---
+            function checkUser() {
+                const userName = localStorage.getItem('userName');
+                if (userName) {
+                    showDashboard(userName, false);
+                } else {
+                    registrationOverlay.classList.remove('hidden');
+                    appWrapper.classList.add('hidden');
+                }
+                applyTheme(currentTheme);
+                initParticles();
+                animateParticles();
+            }
+
+            function showDashboard(userName, isFirstTime) {
+                registrationOverlay.style.opacity = '0';
+                setTimeout(() => registrationOverlay.classList.add('hidden'), 500);
+                
+                appWrapper.classList.remove('hidden');
+                setTimeout(() => { appWrapper.style.opacity = '1'; }, 50);
+
+                document.body.style.overflow = 'auto';
+                welcomeMessage.textContent = isFirstTime ? `Welcome, ${userName}!` : `Welcome back, ${userName}!`;
+                
+                if (isFirstTime) {
+                    playMusic();
+                    showNotification(`Registration successful! Enjoy the app.`);
+                }
+                fetchData();
+            }
+
+            function handleRegistration(event) {
+                event.preventDefault();
+                const userName = realNameInput.value.trim();
+                if (userName) {
+                    localStorage.setItem('userName', userName);
+                    showDashboard(userName, true);
+                } else {
+                    alert('Please enter a name.');
+                }
+            }
+            
+            // --- Music, Theme, & Notifications ---
+            function playMusic() {
+                if (music && !isMusicPlaying) {
+                    music.play().then(() => {
+                        isMusicPlaying = true;
+                        musicToggleBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                        scaryEffectsContainer.classList.add('active');
+                    }).catch(e => console.warn("Music play failed:", e));
+                }
+            }
+            
+            function toggleMusic() {
+                isMusicPlaying = !isMusicPlaying;
+                if (isMusicPlaying) {
+                    music.play();
+                    musicToggleBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                    scaryEffectsContainer.classList.add('active');
+                } else {
+                    music.pause();
+                    musicToggleBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                    scaryEffectsContainer.classList.remove('active');
+                }
+            }
+
+            function applyTheme(theme) {
+                localStorage.setItem('theme', theme);
+                currentTheme = theme;
+                document.documentElement.classList.toggle('light-mode', theme === 'light');
+                themeToggleBtn.innerHTML = theme === 'light' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+            }
+
+            function showNotification(message) {
+                notificationMessage.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => notification.classList.remove('show'), 3000);
+            }
+
+            // --- FULL, UNTOUCHED DASHBOARD FUNCTIONS ---
+            async function fetchData() {
+                if (refreshBtn.disabled) return;
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('loading');
+                try {
+                    await fetchAndRenderAllData();
+                    showNotification('Data Refreshed');
+                } catch (error) {
+                    console.error("Failed to refresh data:", error);
+                    showNotification('Failed to refresh data', 'error');
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('loading');
+                }
+            }
+            
+            async function fetchAndRenderAllData() {
+                const proxy = 'https://corsproxy.io/?';
+                let stockData = {};
+                let weatherData = {};
+                try {
+                    const primaryStockRes = await fetch(`${proxy}http://65.108.103.151:22377/api/stocks?type=all`);
+                    if (!primaryStockRes.ok) throw new Error('Primary API failed');
+                    stockData = await primaryStockRes.json();
+                } catch (e) {
+                    console.warn("Primary API failed, attempting fallback...", e.message);
+                    const [gearSeedRes, eggRes, honeyRes, cosmeticsRes] = await Promise.all([
+                        fetch(`${proxy}https://growagardenstock.com/api/stock?type=gear-seeds`).catch(err=>({ok:false})),
+                        fetch(`${proxy}https://growagardenstock.com/api/stock?type=egg`).catch(err=>({ok:false})),
+                        fetch(`https://growagardenstock.vercel.app/api/stock/all`).catch(err=>({ok:false})),
+                        fetch(`${proxy}https://growagardenstock.com/api/special-stock?type=cosmetics`).catch(err=>({ok:false}))
+                    ]);
+                    const gearSeed = gearSeedRes.ok ? await gearSeedRes.json() : {};
+                    const egg = eggRes.ok ? await eggRes.json() : {};
+                    const honey = honeyRes.ok ? await honeyRes.json() : {};
+                    const cosmetics = cosmeticsRes.ok ? await cosmeticsRes.json() : {};
+                    stockData = { gearStock: (gearSeed.gear||[]).map(n=>({name:n})), seedsStock: (gearSeed.seeds||[]).map(n=>({name:n})), eggStock: (egg.egg||[]).map(n=>({name:n})), honeyStock: honey.honey_stock?.items||[], cosmeticsStock: (cosmetics.cosmetics||[]).map(n=>({name:n})) };
+                }
+                const weatherRes = await fetch(`${proxy}https://growagardenstock.com/api/stock/weather`).catch(e => ({ok:false}));
+                weatherData = weatherRes.ok ? await weatherRes.json() : {};
+                renderStock(stockData);
+                renderGameWeather(weatherData);
+                startOrUpdateGlobalTimer();
+            }
+            
+            function renderGameWeather(data) {
+                const weatherHTML = `<div class="weather-header"><h1><span class="weather-icon">${data.icon || '🌦️'}</span> ${data.currentWeather || 'Unknown'}</h1></div><div class="weather-details"><p><strong>📖 Description:</strong> ${data.description || 'N/A'}</p><p><strong>📌 Effect:</strong> ${data.effectDescription || 'N/A'}</p><p><strong>🪄 Crop Bonus:</strong> ${data.cropBonuses || 'N/A'}</p><p><strong>📢 Visual Cue:</strong> ${data.visualCue || 'N/A'}</p><p><strong>🌟 Rarity:</strong> ${data.rarity || 'N/A'}</p></div>`;
+                const updateNotesHTML = `<div class="update-notes-card"><h2><i class="fa-solid fa-scroll"></i> 🆕 𝗪𝗛𝗔𝗧'𝗦 𝗡𝗘𝗪:</h2><ul><li><strong>- Scary Animations!</strong> When music plays, spooky things appear.</li><li><strong>- User Registration!</strong> The app now remembers you.</li></ul></div>`;
+                weatherSection.innerHTML = `<div class="weather-card">${weatherHTML}</div>` + updateNotesHTML;
+            }
+            
+            function formatValue(val) {
+                if (val === undefined || val === null || val === 'N/A') return '';
+                if (val >= 1_000_000) return `: x${(val / 1_000_000).toFixed(1)}M`;
+                if (val >= 1_000) return `: x${(val / 1_000).toFixed(1)}K`;
+                return `: x${val}`;
+            }
+
+            function renderStock(stockData) {
+                stockContainer.innerHTML = '';
+                const stockTypes = ['gearStock', 'seedsStock', 'eggStock', 'honeyStock', 'cosmeticsStock'];
+                const cardThemes = { gearStock: 'gear', seedsStock: 'seeds', eggStock: 'egg', honeyStock: 'honey', cosmeticsStock: 'cosmetics' };
+                const iconMap = { gearStock: '🛠️', seedsStock: '🌱', eggStock: '🥚', honeyStock: '🍯', cosmeticsStock: '🎨' };
+                stockTypes.forEach(stockKey => {
+                    const stockList = stockData[stockKey] || [];
+                    const card = document.createElement('div');
+                    card.className = `card theme-${cardThemes[stockKey]}`;
+                    card.dataset.category = stockKey;
+                    const name = stockKey.replace('Stock', '').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    const itemsHTML = stockList.length > 0 ? stockList.map(item => `<li>- ${item.emoji ? item.emoji + " " : ""}${item.name}${formatValue(item.value)}</li>`).join('') : '<li>None.</li>';
+                    card.innerHTML = `<div class="card-header"><h2>${iconMap[stockKey]} ${name}</h2></div><div class="card-content"><ul class="items">${itemsHTML}</ul><div class="timer-container" id="timer-${stockKey}">⏳ Restock in: --h --m --s</div></div>`;
+                    stockContainer.appendChild(card);
+                });
+                applyFilter(currentFilter);
+            }
+            
+            function startOrUpdateGlobalTimer() {
+                if (globalTimerInterval) clearInterval(globalTimerInterval);
+                const pad = (n) => n < 10 ? "0" + n : n;
+                const getCountdown = (target) => { const msLeft = target.getTime() - (new Date(new Date().getTime() + new Date().getTimezoneOffset()*60000 + PH_OFFSET)).getTime(); if (msLeft <= 0) return "00h 00m 00s"; const h=Math.floor(msLeft/3.6e6), m=Math.floor((msLeft%3.6e6)/6e4), s=Math.floor((msLeft%6e4)/1000); return `${pad(h)}h ${pad(m)}m ${pad(s)}s`; };
+                globalTimerInterval = setInterval(() => {
+                    const now = new Date(new Date().getTime() + new Date().getTimezoneOffset()*60000 + PH_OFFSET);
+                    const restocks = {};
+                    const nextEgg=new Date(now); nextEgg.setMinutes(now.getMinutes()<30?30:0,0,0); if(now.getMinutes()>=30)nextEgg.setHours(now.getHours()+1); restocks.eggStock=getCountdown(nextEgg);
+                    const next5=new Date(now); const nextM=Math.ceil((now.getMinutes()+(now.getSeconds()>0?1:0))/5)*5; next5.setMinutes(nextM===60?0:nextM,0,0); if(nextM===60)next5.setHours(now.getHours()+1); restocks.gearStock=restocks.seedsStock=getCountdown(next5);
+                    const nextHour=new Date(now); nextHour.setHours(now.getHours()+1,0,0,0); restocks.honeyStock=getCountdown(nextHour);
+                    const next7=new Date(now); const totalHours=now.getHours()+now.getMinutes()/60; const next7h=Math.ceil(totalHours/7)*7; next7.setHours(next7h,0,0,0); restocks.cosmeticsStock=getCountdown(next7);
+                    Object.keys(restocks).forEach(key => { const el=document.getElementById(`timer-${key}`); if(el)el.innerHTML=`⏳ Restock in: ${restocks[key]}`; });
+                }, 1000);
+            }
+
+            function applyFilter(target) {
+                currentFilter = target;
+                const isHome = target === 'home';
+                weatherSection.classList.toggle('active', isHome);
+                stockSection.classList.toggle('active', !isHome);
+                if (!isHome) {
+                    document.querySelectorAll('.stock-grid .card').forEach(card => card.classList.toggle('hidden', card.dataset.category !== target));
+                }
+            }
+            
+            // --- Particle Background Script ---
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particlesArray;
+            class Particle{constructor(x,y,dX,dY,s){this.x=x;this.y=y;this.dX=dX;this.dY=dY;this.s=s;this.c="rgba(255,255,255,";this.o=Math.random()*0.4+0.1;this.oC=(Math.random()*0.005)+0.002}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.s,0,Math.PI*2);ctx.fillStyle=this.c+this.o+")";ctx.fill()}update(){if(this.x>canvas.width||this.x<0)this.dX=-this.dX;if(this.y>canvas.height||this.y<0)this.dY=-this.dY;this.o+=this.oC;if(this.o>0.5||this.o<0.05)this.o_c=-this.o_c;this.x+=this.dX;this.y+=this.dY;this.draw()}}
+            function initParticles() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; particlesArray = []; let num = (canvas.height*canvas.width)/9000; for (let i = 0; i < num; i++) { let size=(Math.random()*1.5)+1, x=Math.random()*canvas.width, y=Math.random()*canvas.height, dX=(Math.random()*0.2)-0.1, dY=(Math.random()*0.2)-0.1; particlesArray.push(new Particle(x,y,dX,dY,size)); } }
+            function animateParticles() { requestAnimationFrame(animateParticles); ctx.clearRect(0,0,innerWidth,innerHeight); particlesArray.forEach(p=>p.update()); }
+            window.addEventListener('resize', () => { canvas.width=innerWidth; canvas.height=innerHeight; initParticles(); });
+            
+            // --- Event Listeners ---
+            registrationForm.addEventListener('submit', handleRegistration);
+            musicToggleBtn.addEventListener('click', toggleMusic);
+            themeToggleBtn.addEventListener('click', () => applyTheme(currentTheme === 'light' ? 'dark' : 'light'));
+            refreshBtn.addEventListener('click', fetchData);
+            navbar.addEventListener('click', (e) => { const item = e.target.closest('.nav-item'); if (!item) return; navbar.querySelector('.nav-item.active')?.classList.remove('active'); item.classList.add('active'); applyFilter(item.dataset.target); });
+
+            // --- Initial App Start ---
+            checkUser();
+        });
+    </script>
+</body>
+</html>
